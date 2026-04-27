@@ -1,0 +1,16 @@
+# --- CORE & DATA ---
+fastf1
+pandas
+numpy
+scipy>
+
+# --- VISUALIZATION ---
+matplotlib
+plotly
+seaborn
+
+# --- INTERFACE (UI) ---
+streamlit
+
+# --- UTILS ---
+requests

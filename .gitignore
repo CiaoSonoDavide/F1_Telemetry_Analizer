@@ -1,0 +1,46 @@
+# --- FASTF1 & DATA ---
+# Esclude la cartella della cache (fondamentale per non caricare GB di dati)
+.fastf1-cache/
+cache/
+f1_cache/
+
+# Esclude file di dati calcolati o salvati localmente
+computed_data/
+*.pkl
+*.data
+*.csv
+
+# --- OUTPUT & MEDIA ---
+# Esclude i video delle animazioni e i frame di test
+output_animation.mp4
+still_frame.png
+plots/
+*.pdf
+*.png
+
+# --- PYTHON & ENV ---
+# Esclude l'ambiente virtuale (va installato da requirements.txt)
+venv/
+.venv/
+env/
+
+# Cache di Python
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+.pytest_cache/
+
+# --- IDE & SYSTEM ---
+# Configurazioni dei principali editor (PyCharm, VS Code)
+.idea/
+.vscode/
+
+# File di sistema (Mac e Windows)
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- SECURITY ---
+# Esclude file contenenti segreti o chiavi API
+.env
