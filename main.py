@@ -4,7 +4,7 @@ from fastf1 import plotting as pl
 
 from core.session_manager import setup_cache, load_gp_session
 from core.lap_handler import get_best_lap, get_telemetry_data
-from visualization.charts import create_speed_chart
+from visualization.charts import create_telemetry
 
 pl.setup_mpl(mpl_timedelta_support=True, color_scheme='fastf1')
 st.set_page_config(page_title="F1 Analysis", layout="wide")
@@ -28,7 +28,7 @@ if sidebar.button("Load analysis"):
             col1.metric("Lap Time", f"{best_lap['LapTime']}".split()[-1][:8])
             col2.metric("Max speed", f"{telemetry['Speed'].max()} km/h)")
 
-            fig = create_speed_chart(telemetry, driver, session)
+            fig = create_telemetry(telemetry, driver, session)
             st.plotly_chart(fig, use_container_width=True)
         except Exception as e:
             st.error(f"Loading error: {e}")
