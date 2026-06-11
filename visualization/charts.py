@@ -75,13 +75,13 @@ def create_telemetry_comparision(telemetry,
         raise ValueError(f"Invalid channels {invalid_channels}")
 
     n_channels = len(channels)
-    height_ratio = [TELEMETRY_CHANNELS[ch]['height_ratio'] for ch in channels]
+    height_ratios = [TELEMETRY_CHANNELS[ch]['height_ratio'] for ch in channels]
 
     fig, axs = plt.subplots(
         n_channels, 1,
         sharex=True,
         figsize=figsize,
-        gridspec_kw={'height_ratios': height_ratio}
+        gridspec_kw={'height_ratios': height_ratios}
     )
 
     if n_channels == 1:
@@ -101,3 +101,38 @@ def create_telemetry(telemetry,
                      driver_name: str,
                      session):
     return create_telemetry_comparision(telemetry, driver_name, session)
+
+def create_dual_driver_comparision(telemetry_driver1,
+                                   driver1_name: str,
+                                   telemetry_driver2,
+                                   driver2_name: str,
+                                   session,
+                                   channels: Optional[List[str]] = None,
+                                   figsize: Tuple[int, int] =(14,14)):
+    if channels is None:
+        channels = list(TELEMETRY_CHANNELS.keys())
+        
+    n_channels = len(channels)
+    height_ratios = [TELEMETRY_CHANNELS[ch]['height_ratio'] for ch in channels]
+
+    fig, axs = plt.subplots(
+        n_channels, 1,
+        sharex=True,
+        figsize=figsize,
+        gridspec_kw={'height_ratios': height_ratios}
+    )
+
+    if n_channels == 1:
+        axs = [axs]
+
+    plt.subplots_adjust(hspace=0.15)
+
+    for idx, channel in enumerate(channels):
+        add_telemetry_plot(axs[idx], telemetry_driver1, channel, driver1_name, session)
+        add_telemetry_plot(axs[idx], telemetry_driver2, channel, driver2_name, session)
+
+    axs[0].legend(loc = 'upper right')
+    axs[-1].set_xlabel('Distance (m)')
+    fig.subtitle(f'{driver1_name} vs {driver2_name}', fontsize=16, fontweight='bold')
+
+    return fig
