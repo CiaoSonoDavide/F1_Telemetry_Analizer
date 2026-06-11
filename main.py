@@ -29,6 +29,6 @@ if sidebar.button("Load analysis"):
             col2.metric("Max speed", f"{telemetry['Speed'].max()} km/h)")
 
             fig = create_telemetry(telemetry, driver, session)
-            st.plotly_chart(fig, use_container_width=True)
+            st.pyplot(fig)
         except Exception as e:
             st.error(f"Loading error: {e}")
