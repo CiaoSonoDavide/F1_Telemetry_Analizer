@@ -31,4 +31,5 @@ if sidebar.button("Load analysis"):
             fig = create_telemetry(telemetry, driver, session)
             st.pyplot(fig)
         except Exception as e:
+            print(f"Error: {e}")
             st.error(f"Loading error: {e}")
