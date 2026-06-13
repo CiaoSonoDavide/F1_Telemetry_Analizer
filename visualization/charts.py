@@ -1,6 +1,6 @@
 import fastf1.plotting as pl
 from matplotlib import pyplot as plt
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict
 from core.lap_handler import get_best_lap
 
 TELEMETRY_CHANNELS = {
@@ -136,8 +136,9 @@ def create_telemetry_comparision(telemetry,
 def create_telemetry(telemetry,
                      driver_name: str,
                      session,
+                     channels: Optional[List[str]] = None,
                      show_curves: bool = True):
-    return create_telemetry_comparision(telemetry, driver_name, session, show_curves=show_curves)
+    return create_telemetry_comparision(telemetry, driver_name, session, channels=channels, show_curves=show_curves)
 
 def create_dual_driver_comparision(telemetry_driver1,
                                    driver1_name: str,
@@ -174,6 +175,6 @@ def create_dual_driver_comparision(telemetry_driver1,
 
     axs[0].legend(loc = 'upper right')
     axs[-1].set_xlabel('Distance (m)')
-    fig.subtitle(f'{driver1_name} vs {driver2_name}', fontsize=16, fontweight='bold')
+    fig.suptitle(f'{driver1_name} vs {driver2_name}', fontsize=16, fontweight='bold')
 
     return fig
