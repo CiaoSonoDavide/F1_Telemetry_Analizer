@@ -41,7 +41,7 @@ def render_single_driver(config):
 
                     col1, col2 = st.columns(2)
                     with col1:
-                        lap_time = str(best_lap['LapTime']).split()[-1][:8]
+                        lap_time = str(best_lap['LapTime']).split()[-1][3:12]
                         st.metric("Lap Time", lap_time)
                     with col2:
                         max_speed = telemetry['Speed'].max()

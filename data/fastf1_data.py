@@ -49,9 +49,15 @@ def get_session_by_gp(year: int, gp_name: str) -> List[str]:
             'Race': 'R'
         }
 
-        for column_name, session_type in sessions.items():
-            if column_name in event.index and pd.notna(event[column_name]):
-                sessions.append(session_type)
+        sessions_colums = ['Session1', 'Session2', 'Session3', 'Session4', 'Session5']
+
+        for col in sessions_colums:
+            if col in event.index and pd.notna(event[col]):
+                session_full_name = event[col]
+
+                if session_full_name in session_mapping:
+                    sessions.append(session_mapping[session_full_name])
+
         return sessions
     except Exception as e:
         print(f"Error loading sessions for {year} {gp_name}: {e}")

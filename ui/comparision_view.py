@@ -57,13 +57,13 @@ def render_comparision(config):
 
                             col1, col2, col3, col4 = st.columns(4)
                             with col1:
-                                lap_time1 = str(best_lap1['LapTime']).split()[-1][:8]
+                                lap_time1 = str(best_lap1['LapTime']).split()[-1][3:12]
                                 st.metric(f"{driver1} Lap Time", lap_time1)
                             with col2:
                                 max_speed1 = telemetry1['Speed'].max()
                                 st.metric(f"{driver1} Max Speed", f"{max_speed1} km/h")
                             with col3:
-                                lap_time2 = str(best_lap2['LapTime']).split()[-1][:8]
+                                lap_time2 = str(best_lap2['LapTime']).split()[-1][3:12]
                                 st.metric(f"{driver2} Lap Time", lap_time2)
                             with col4:
                                 max_speed2 = telemetry2['Speed'].max()
