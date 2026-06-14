@@ -4,12 +4,11 @@ from data.fastf1_data import (
     get_available_years,
     get_gp_by_year,
     get_session_by_gp,
-    get_driver_by_session
 )
 
 
 def render_sidebar():
-    st.header("Configuration")
+    st.sidebar.header("Configuration")
 
     mode = st.sidebar.radio(
         "Select Mode",
