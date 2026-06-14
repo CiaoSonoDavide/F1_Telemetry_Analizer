@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit import config
 
 from core.session_manager import load_gp_session
 from core.lap_handler import get_best_lap, get_telemetry_data

@@ -147,7 +147,8 @@ def create_dual_driver_comparision(telemetry_driver1,
                                    session,
                                    channels: Optional[List[str]] = None,
                                    figsize: Tuple[int, int] =(14,14),
-                                   show_curves: bool = True):
+                                   show_curves: bool = True,
+                                   show_label: bool = True):
     if channels is None:
         channels = list(TELEMETRY_CHANNELS.keys())
         
@@ -167,14 +168,11 @@ def create_dual_driver_comparision(telemetry_driver1,
     plt.subplots_adjust(hspace=0.15)
 
     for idx, channel in enumerate(channels):
-        add_telemetry_plot(axs[idx], telemetry_driver1, channel, driver1_name, session)
-        add_telemetry_plot(axs[idx], telemetry_driver2, channel, driver2_name, session)
-
-        if show_curves:
-            add_curve_markers(axs[idx],session, driver1_name)
+        show_label = (idx == 0)
+        add_telemetry_plot(axs[idx], telemetry_driver1, channel, driver1_name, session, show_curves=show_curves, show_label=show_label)
+        add_telemetry_plot(axs[idx], telemetry_driver2, channel, driver2_name, session, show_curves=False, show_label=False)
 
     axs[0].legend(loc = 'upper right')
     axs[-1].set_xlabel('Distance (m)')
-    fig.suptitle(f'{driver1_name} vs {driver2_name}', fontsize=16, fontweight='bold')
 
     return fig
