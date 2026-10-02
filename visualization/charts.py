@@ -36,15 +36,23 @@ TELEMETRY_CHANNELS = {
     }
 }
 
-def get_driver_style(driver_abbr, session):
+def get_driver_style(driver_abbr: str, session):
     return pl.get_driver_style(identifier=driver_abbr,
                                 style=['color', 'linestyle'],
                                 session=session)
 
-def add_curve_markers(ax, session, driver_name, show_label=True):
+def add_curve_markers(ax, session, driver_name: str, show_label=True) -> None:
     fastest_lap = get_best_lap(session, driver_name)
+    if fastest_lap is None:
+        return
+
     car_data = fastest_lap.get_car_data().add_distance()
     circuit_info = session.get_circuit_info()
+
+    if circuit_info is None or circuit_info.corners.empty:
+        return
+    if "Distance" not in circuit_info.corners:
+        return
 
     ymin, ymax = ax.get_ylim()
 
@@ -79,6 +87,9 @@ def add_telemetry_plot(ax,
     if channel not in telemetry.columns:
         raise ValueError(f"Channel {channel} not found in telemetry data")
 
+    if distance_col not in telemetry.columns:
+        raise ValueError(f"Column {distance_col} not found in telemetry data")
+
     style = get_driver_style(driver_name, session)
     config = TELEMETRY_CHANNELS.get(channel, {})
 
@@ -95,19 +106,21 @@ def add_telemetry_plot(ax,
     if show_curves:
         add_curve_markers(ax, session, driver_name, show_label)
 
-def create_telemetry_comparision(telemetry,
-                                 driver_name: str,
-                                 session,
-                                 channels: Optional[List[str]] = None,
-                                 figsize: Tuple[int, int] =(12,14),
-                                 show_curves: bool = True,
-                                 show_label: bool = True):
+def create_telemetry_comparison(telemetry,
+                                driver_name: str,
+                                session,
+                                channels: Optional[List[str]] = None,
+                                figsize: Tuple[int, int] =(12,14),
+                                show_curves: bool = True):
     if channels is None:
         channels = list(TELEMETRY_CHANNELS.keys())
 
     invalid_channels = [ch for ch in channels if ch not in TELEMETRY_CHANNELS]
     if invalid_channels:
         raise ValueError(f"Invalid channels {invalid_channels}")
+
+    if not channels:
+        raise ValueError("At least one telemetry channel is required")
 
     n_channels = len(channels)
     height_ratios = [TELEMETRY_CHANNELS[ch]['height_ratio'] for ch in channels]
@@ -116,13 +129,14 @@ def create_telemetry_comparision(telemetry,
         n_channels, 1,
         sharex=True,
         figsize=figsize,
-        gridspec_kw={'height_ratios': height_ratios}
+        gridspec_kw={'height_ratios': height_ratios},
+        constrained_layout=True
     )
 
     if n_channels == 1:
         axs = [axs]
 
-    plt.subplots_adjust(hspace=0.05)
+    #plt.subplots_adjust(hspace=0.05)
 
     for idx, channel in enumerate(channels):
         show_label = (idx == 0)
@@ -138,19 +152,26 @@ def create_telemetry(telemetry,
                      session,
                      channels: Optional[List[str]] = None,
                      show_curves: bool = True):
-    return create_telemetry_comparision(telemetry, driver_name, session, channels=channels, show_curves=show_curves)
+    return create_telemetry_comparison(telemetry, driver_name, session, channels=channels, show_curves=show_curves)
 
-def create_dual_driver_comparision(telemetry_driver1,
-                                   driver1_name: str,
-                                   telemetry_driver2,
-                                   driver2_name: str,
-                                   session,
-                                   channels: Optional[List[str]] = None,
-                                   figsize: Tuple[int, int] =(14,14),
-                                   show_curves: bool = True,
-                                   show_label: bool = True):
+def create_dual_driver_comparison(telemetry_driver1,
+                                  driver1_name: str,
+                                  telemetry_driver2,
+                                  driver2_name: str,
+                                  session,
+                                  channels: Optional[List[str]] = None,
+                                  figsize: Tuple[int, int] =(14,14),
+                                  show_curves: bool = True):
     if channels is None:
         channels = list(TELEMETRY_CHANNELS.keys())
+
+    if not channels:
+        raise ValueError("At least one telemetry channel is required")
+
+    invalid_channels = [channel for channel in channels if channel not in TELEMETRY_CHANNELS]
+
+    if invalid_channels:
+        raise ValueError(f"Invalid channels: {invalid_channels}")
         
     n_channels = len(channels)
     height_ratios = [TELEMETRY_CHANNELS[ch]['height_ratio'] for ch in channels]
@@ -159,13 +180,14 @@ def create_dual_driver_comparision(telemetry_driver1,
         n_channels, 1,
         sharex=True,
         figsize=figsize,
-        gridspec_kw={'height_ratios': height_ratios}
+        gridspec_kw={'height_ratios': height_ratios},
+        constrained_layout=True
     )
 
     if n_channels == 1:
         axs = [axs]
 
-    plt.subplots_adjust(hspace=0.15)
+    #plt.subplots_adjust(hspace=0.15)
 
     for idx, channel in enumerate(channels):
         show_label = (idx == 0)

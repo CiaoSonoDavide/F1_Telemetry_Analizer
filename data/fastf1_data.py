@@ -4,6 +4,19 @@ from functools import lru_cache
 from typing import List
 from datetime import datetime
 
+SESSION_MAPPING = {
+    'Practice 1': 'FP1',
+    'Practice 2': 'FP2',
+    'Practice 3': 'FP3',
+    'Sprint Qualifying': 'SQ',
+    'Sprint Shootout': 'SS',
+    'Sprint': 'S',
+    'Qualifying': 'Q',
+    'Race': 'R'
+}
+
+SESSION_COLUMNS = ['Session1', 'Session2', 'Session3', 'Session4', 'Session5']
+
 
 @lru_cache(maxsize=128)
 def get_available_years() -> List[int]:
@@ -14,7 +27,7 @@ def get_available_years() -> List[int]:
         for year in range(2018, current_year+ 1):
             try:
                 schedule = fastf1.get_event_schedule(year)
-                if not schedule.empty:
+                if schedule is not None and not schedule.empty:
                     years.add(year)
             except:
                 pass
@@ -38,25 +51,12 @@ def get_session_by_gp(year: int, gp_name: str) -> List[str]:
         event = schedule[schedule['EventName'] == gp_name].iloc[0]
         sessions =[]
 
-        session_mapping = {
-            'Practice 1': 'FP1',
-            'Practice 2': 'FP2',
-            'Practice 3': 'FP3',
-            'Sprint Qualifying': 'SQ',
-            'Sprint Shootout': 'SS',
-            'Sprint': 'S',
-            'Qualifying': 'Q',
-            'Race': 'R'
-        }
-
-        sessions_colums = ['Session1', 'Session2', 'Session3', 'Session4', 'Session5']
-
-        for col in sessions_colums:
+        for col in SESSION_COLUMNS:
             if col in event.index and pd.notna(event[col]):
                 session_full_name = event[col]
 
-                if session_full_name in session_mapping:
-                    sessions.append(session_mapping[session_full_name])
+                if session_full_name in SESSION_MAPPING:
+                    sessions.append(SESSION_MAPPING[session_full_name])
 
         return sessions
     except Exception as e:
@@ -80,7 +80,7 @@ def get_driver_by_session(year: int, gp_name: str, session_type: str) -> List[st
         return []
 
 def clear_cache():
-    get_available_years().cache_clear()
-    get_gp_by_year().cache_clear()
-    get_session_by_gp().cache_clear()
-    get_driver_by_session().cache_clear()
+    get_available_years.cache_clear()
+    get_gp_by_year.cache_clear()
+    get_session_by_gp.cache_clear()
+    get_driver_by_session.cache_clear()

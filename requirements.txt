@@ -2,7 +2,7 @@
 fastf1
 pandas
 numpy
-scipy>
+scipy
 
 # --- VISUALIZATION ---
 matplotlib
@@ -10,7 +10,7 @@ plotly
 seaborn
 
 # --- INTERFACE (UI) ---
-streamlit
+PySide6
 
 # --- UTILS ---
 requests

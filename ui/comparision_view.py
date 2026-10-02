@@ -2,7 +2,7 @@ import streamlit as st
 
 from core.session_manager import load_gp_session
 from core.lap_handler import get_best_lap, get_telemetry_data
-from visualization.charts import create_dual_driver_comparision
+from visualization.charts import create_dual_driver_comparison
 from data.fastf1_data import get_driver_by_session
 
 def render_comparision(config):
@@ -69,7 +69,7 @@ def render_comparision(config):
                                 max_speed2 = telemetry2['Speed'].max()
                                 st.metric(f"{driver2} Max Speed", f"{max_speed2} km/h")
 
-                            fig  = create_dual_driver_comparision(
+                            fig  = create_dual_driver_comparison(
                                 telemetry1,
                                 driver1,
                                 telemetry2,

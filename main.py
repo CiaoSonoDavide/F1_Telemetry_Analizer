@@ -1,19 +1,28 @@
-import streamlit as st
-from fastf1 import plotting as pl
+import sys
+
+import fastf1.plotting as plotting
+from PySide6.QtWidgets import QApplication
+
 from core.session_manager import setup_cache
-from ui.sidebar import render_sidebar
-from ui.single_driver_view import render_single_driver
-from ui.comparision_view import render_comparision
+from desktop.main_window import MainWindow
 
-pl.setup_mpl(mpl_timedelta_support=True, color_scheme='fastf1')
-st.set_page_config(page_title="F1 Analysis", layout="wide")
-setup_cache()
 
-st.title("F1 Telemetry Analyzer 🏎️")
+def main():
+    plotting.setup_mpl(
+        mpl_timedelta_support=True,
+        color_scheme="fastf1",
+    )
 
-config = render_sidebar()
+    setup_cache()
 
-if config['mode'] == "Single Driver":
-    render_single_driver(config)
-else:
-    render_comparision(config)
+    app = QApplication(sys.argv)
+    app.setApplicationName("F1 Telemetry Analyzer")
+
+    window = MainWindow()
+    window.show()
+
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
