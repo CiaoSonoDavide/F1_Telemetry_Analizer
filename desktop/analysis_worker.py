@@ -12,6 +12,8 @@ from visualization.charts import (
 from analytics.telemetry import (interpolate_telemetry_by_distance)
 import pandas as pd
 
+import traceback
+
 class AnalysisWorker(QObject):
     finished = Signal(object)
     error = Signal(str)
@@ -42,14 +44,22 @@ class AnalysisWorker(QObject):
             self.finished.emit(result)
 
         except Exception as exc:
-            self.error.emit(str(exc))
+            error_details = traceback.format_exc()
+            print(error_details, flush=True)
+            self.error.emit(f"{type(exc).__name__}: {exc}\n\n""Dettagli completi nella console di PyCharm.")
 
     def load_drivers(self):
-        drivers = get_driver_by_session(
-            self.config["year"],
-            self.config["gp"],
-            self.config["session_type"],
-        )
+        year = self.config.get("year")
+        gp = self.config.get("gp")
+        session_type = self.config.get("session_type")
+
+        if not year or not gp or not session_type:
+            raise ValueError("Configurazione sessione incompleta.")
+
+        drivers = get_driver_by_session(year, gp, session_type)
+
+        if not drivers:
+            raise ValueError("FastF1 non ha restituito piloti per la sessione " f"{year} - {gp} - {session_type}.")
 
         return {
             "type": "drivers",

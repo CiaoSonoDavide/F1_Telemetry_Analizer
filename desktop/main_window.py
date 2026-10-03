@@ -27,6 +27,7 @@ class MainWindow(QMainWindow):
 
         self.resize(1500, 950)
 
+        self.last_driver_config = None
         self.worker_thread = None
         self.worker = None
 
@@ -105,18 +106,20 @@ class MainWindow(QMainWindow):
         if self.worker_thread is not None:
             return
 
-        if not config["year"]:
+        year = config.get("year")
+        gp = config.get("gp")
+        session_type = config.get("session_type")
+
+        if not year or not gp or not session_type:
             return
 
-        if not config["gp"]:
+        config_key = (year, gp, session_type)
+
+        if config_key == self.last_driver_config:
             return
 
-        if not config["session_type"]:
-            return
-
-        self.status_label.setText(
-            "Caricamento piloti..."
-        )
+        self.status_label.setText("Download/caricamento dati FastF1...")
+        self.last_driver_config = config_key
 
         self.start_worker(
             operation="drivers",
@@ -274,6 +277,7 @@ class MainWindow(QMainWindow):
 
     @Slot(str)
     def on_worker_error(self, message: str):
+        self.last_driver_config = None
         self.status_label.setText(
             "Errore durante l'operazione"
         )

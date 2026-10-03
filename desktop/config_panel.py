@@ -119,6 +119,10 @@ class ConfigPanel(QWidget):
             self.populate_sessions
         )
 
+        self.session_combo.currentIndexChanged.connect(
+            self.on_session_changed
+        )
+
         self.load_button.clicked.connect(
             self.request_load
         )
@@ -158,10 +162,7 @@ class ConfigPanel(QWidget):
             return
 
         year = int(year_text)
-        sessions = get_session_by_gp(
-            year,
-            gp_name,
-        )
+        sessions = get_session_by_gp(year, gp_name)
 
         self.session_combo.addItems(sessions)
 
@@ -169,6 +170,14 @@ class ConfigPanel(QWidget):
             self.configuration_changed.emit(
                 self.current_configuration()
             )
+
+    def on_session_changed(self, index: int):
+        if index < 0:
+            return
+
+        config = self.current_configuration()
+        if(config["year"] and config["gp"] and config["session_type"]):
+            self.configuration_changed.emit(config)
 
     def on_mode_changed(self, checked: bool):
         if not checked:

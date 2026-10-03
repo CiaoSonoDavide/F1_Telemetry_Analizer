@@ -76,6 +76,9 @@ class ComparisonPage(QWidget):
         self.driver1_combo.addItems(drivers)
         self.driver2_combo.addItems(drivers)
 
+        self.driver1_combo.setEnabled(bool(drivers))
+        self.driver2_combo.setEnabled(bool(drivers))
+
         if len(drivers) > 1:
             self.driver2_combo.setCurrentIndex(1)
 

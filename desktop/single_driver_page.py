@@ -54,6 +54,7 @@ class SingleDriverPage(QWidget):
     def set_drivers(self, drivers: list[str]):
         self.driver_combo.clear()
         self.driver_combo.addItems(drivers)
+        self.driver_combo.setEnabled(bool(drivers))
 
     def selected_driver(self) -> str:
         return self.driver_combo.currentText()
