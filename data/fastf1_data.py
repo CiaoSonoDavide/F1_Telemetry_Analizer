@@ -68,16 +68,24 @@ def get_driver_by_session(year: int, gp_name: str, session_type: str) -> List[st
     try:
         from core.session_manager import load_gp_session
 
-        session = load_gp_session(year, gp_name, session_type)
+        session = load_gp_session(year,gp_name,session_type)
 
-        if session is None or session.laps is None:
-            return []
+        if session is None:
+            raise ValueError("Sessione FastF1 vuota.")
 
-        drivers = session.laps['Driver'].unique().tolist()
+        if session.laps is None or session.laps.empty:
+            raise ValueError("La sessione non contiene giri.")
+
+        if "Driver" not in session.laps.columns:
+            raise ValueError("Colonna Driver non presente.")
+
+        drivers = (session.laps["Driver"].dropna().astype(str).unique().tolist())
+
         return sorted(drivers)
-    except Exception as e:
-        print(f"Error loading drivers for {year} {gp_name} {session_type}: {e}")
-        return []
+
+    except Exception as exc:
+        print(f"Errore caricando i piloti per " f"{year} / {gp_name} / {session_type}:", flush=True)
+        raise RuntimeError("Impossibile caricare i piloti della sessione.") from exc
 
 def clear_cache():
     get_available_years.cache_clear()

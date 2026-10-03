@@ -1,4 +1,4 @@
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, QSignalBlocker
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -112,11 +112,15 @@ class ConfigPanel(QWidget):
         )
 
         self.year_combo.currentIndexChanged.connect(
-            self.populate_grands_prix
+            self.populate_gp
         )
 
         self.gp_combo.currentIndexChanged.connect(
             self.populate_sessions
+        )
+
+        self.session_combo.currentIndexChanged.connect(
+            self.on_session_changed
         )
 
         self.load_button.clicked.connect(
@@ -132,43 +136,48 @@ class ConfigPanel(QWidget):
             [str(year) for year in years]
         )
 
-        self.populate_grands_prix()
+        self.populate_gp()
 
-    def populate_grands_prix(self):
-        self.gp_combo.clear()
+    def populate_gp(self):
+        with QSignalBlocker(self.gp_combo):
+            self.gp_combo.clear()
 
-        year_text = self.year_combo.currentText()
+            year_text = self.year_combo.currentText()
 
-        if not year_text:
-            return
+            if not year_text:
+                return
 
-        year = int(year_text)
-        gps = get_gp_by_year(year)
+            year = int(year_text)
+            gps = get_gp_by_year(year)
 
-        self.gp_combo.addItems(gps)
+            self.gp_combo.addItems(gps)
         self.populate_sessions()
 
     def populate_sessions(self):
-        self.session_combo.clear()
+        with QSignalBlocker(self.session_combo):
+            self.session_combo.clear()
 
-        year_text = self.year_combo.currentText()
-        gp_name = self.gp_combo.currentText()
+            year_text = self.year_combo.currentText()
+            gp_name = self.gp_combo.currentText()
 
-        if not year_text or not gp_name:
+            if not year_text or not gp_name:
+                return
+
+            year = int(year_text)
+            sessions = get_session_by_gp(year, gp_name)
+
+            self.session_combo.addItems(sessions)
+
+        if self.session_combo.count() > 0:
+            self.on_session_changed(self.session_combo.currentIndex())
+
+    def on_session_changed(self, index: int):
+        if index < 0:
             return
 
-        year = int(year_text)
-        sessions = get_session_by_gp(
-            year,
-            gp_name,
-        )
-
-        self.session_combo.addItems(sessions)
-
-        if sessions:
-            self.configuration_changed.emit(
-                self.current_configuration()
-            )
+        config = self.current_configuration()
+        if(config["year"] and config["gp"] and config["session_type"]):
+            self.configuration_changed.emit(config)
 
     def on_mode_changed(self, checked: bool):
         if not checked:

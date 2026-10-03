@@ -27,6 +27,7 @@ class MainWindow(QMainWindow):
 
         self.resize(1500, 950)
 
+        self.last_driver_config = None
         self.worker_thread = None
         self.worker = None
 
@@ -105,18 +106,20 @@ class MainWindow(QMainWindow):
         if self.worker_thread is not None:
             return
 
-        if not config["year"]:
+        year = config.get("year")
+        gp = config.get("gp")
+        session_type = config.get("session_type")
+
+        if not year or not gp or not session_type:
             return
 
-        if not config["gp"]:
+        config_key = (year, gp, session_type)
+
+        if config_key == self.last_driver_config:
             return
 
-        if not config["session_type"]:
-            return
-
-        self.status_label.setText(
-            "Caricamento piloti..."
-        )
+        self.status_label.setText("Download/caricamento dati FastF1...")
+        self.last_driver_config = config_key
 
         self.start_worker(
             operation="drivers",
@@ -186,53 +189,34 @@ class MainWindow(QMainWindow):
         self.progress_bar.setRange(0, 0)
         self.status_label.setText("Caricamento in corso...")
 
-        self.worker_thread = QThread(self)
-        self.worker = AnalysisWorker(
-            operation=operation,
-            config=config,
-        )
+        thread = QThread(self)
+        worker = AnalysisWorker(operation=operation, config=config)
 
-        self.worker.moveToThread(
-            self.worker_thread
-        )
+        self.worker_thread = thread
+        self.worker = worker
 
-        self.worker_thread.started.connect(
-            self.worker.run
-        )
+        worker.moveToThread(thread)
 
-        self.worker.finished.connect(
-            self.on_worker_finished
-        )
+        thread.started.connect(worker.run)
 
-        self.worker.error.connect(
-            self.on_worker_error
-        )
+        worker.finished.connect(self.on_worker_finished)
 
-        self.worker.finished.connect(
-            self.worker_thread.quit
-        )
+        worker.error.connect(self.on_worker_error)
 
-        self.worker.error.connect(
-            self.worker_thread.quit
-        )
+        worker.finished.connect(thread.quit)
 
-        self.worker_thread.finished.connect(
-            self.on_worker_thread_finished
-        )
+        worker.error.connect(thread.quit)
 
-        self.worker_thread.start()
+        thread.finished.connect(worker.deleteLater)
+
+        thread.finished.connect(thread.deleteLater)
+
+        thread.finished.connect(self.on_worker_thread_finished)
+
+        thread.start()
 
     @Slot(object)
     def on_worker_finished(self, result: dict):
-        if self.worker is not None:
-            self.worker.deleteLater()
-
-        if self.worker_thread is not None:
-            self.worker_thread.deleteLater()
-
-        self.worker = None
-        self.worker_thread = None
-
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
         self.progress_bar.setVisible(False)
@@ -274,6 +258,7 @@ class MainWindow(QMainWindow):
 
     @Slot(str)
     def on_worker_error(self, message: str):
+        self.last_driver_config = None
         self.status_label.setText(
             "Errore durante l'operazione"
         )
@@ -281,19 +266,14 @@ class MainWindow(QMainWindow):
         QMessageBox.critical(
             self,
             "Errore",
-            message,
+            message
         )
 
     @Slot()
     def on_worker_thread_finished(self):
-        if self.worker is not None:
-            self.worker.deleteLater()
-
-        if self.worker_thread is not None:
-            self.worker_thread.deleteLater()
-
         self.worker = None
         self.worker_thread = None
 
-        self.progress_bar.setVisible(False)
         self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setVisible(False)
