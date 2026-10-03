@@ -172,7 +172,21 @@ def create_dual_driver_comparison(telemetry_driver1,
 
     if invalid_channels:
         raise ValueError(f"Invalid channels: {invalid_channels}")
-        
+
+    for telemetry, driver_name in (
+            (telemetry_driver1, driver1_name),
+            (telemetry_driver2, driver2_name),
+    ):
+        if "Distance" not in telemetry.columns:
+            raise ValueError(f"Telemetry for {driver_name} " "does not contain 'Distance'")
+
+    for channel in channels:
+        if channel not in telemetry_driver1.columns:
+            raise ValueError(f"Channel '{channel}' is missing for "f"driver {driver1_name}")
+
+        if channel not in telemetry_driver2.columns:
+            raise ValueError(f"Channel '{channel}' is missing for "f"driver {driver2_name}")
+
     n_channels = len(channels)
     height_ratios = [TELEMETRY_CHANNELS[ch]['height_ratio'] for ch in channels]
 

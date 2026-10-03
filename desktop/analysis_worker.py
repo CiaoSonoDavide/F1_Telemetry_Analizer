@@ -1,5 +1,4 @@
 from PySide6.QtCore import QObject, Signal, Slot
-
 from core.lap_handler import (
     get_best_lap,
     get_telemetry_data,
@@ -10,7 +9,8 @@ from visualization.charts import (
     create_dual_driver_comparison,
     create_telemetry,
 )
-
+from analytics.telemetry import (interpolate_telemetry_by_distance)
+import pandas as pd
 
 class AnalysisWorker(QObject):
     finished = Signal(object)
@@ -127,8 +127,18 @@ class AnalysisWorker(QObject):
                 f"Il pilota {driver2} non ha giri validi"
             )
 
-        telemetry1 = get_telemetry_data(best_lap1)
-        telemetry2 = get_telemetry_data(best_lap2)
+        original_telemetry1 = get_telemetry_data(best_lap1)
+        original_telemetry2 = get_telemetry_data(best_lap2)
+        channels = self.config.get("channels")
+
+        telemetry1, telemetry2 = (
+            interpolate_telemetry_by_distance(
+                telemetry1 = original_telemetry1,
+                telemetry2 = original_telemetry2,
+                channels = channels,
+                step=1.0
+            )
+        )
 
         figure = create_dual_driver_comparison(
             telemetry_driver1=telemetry1,
@@ -155,7 +165,16 @@ class AnalysisWorker(QObject):
     def format_lap_time(lap) -> str:
         lap_time = lap["LapTime"]
 
-        if lap_time is None:
+        if lap_time is None or pd.isna(lap_time):
             return "N/A"
 
-        return str(lap_time).split()[-1]
+        try:
+            total_milliseconds = round(pd.to_timedelta(lap_time).total_seconds() * 1000)
+            minutes, remainder = divmod(total_milliseconds, 60_000)
+            seconds, milliseconds = divmod(remainder, 1_000)
+
+            return (f"{minutes}:"
+                    f"{seconds:02d}:"
+                    f"{milliseconds:03d}")
+        except(TypeError, ValueError):
+            return "N/A"
