@@ -1,4 +1,5 @@
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+from desktop.charts_canvas import ScrollableFigureCanvas
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QComboBox,
     QFormLayout,
@@ -6,8 +7,10 @@ from PySide6.QtWidgets import (
     QLabel,
     QSizePolicy,
     QVBoxLayout,
-    QWidget,
+    QWidget, QScrollArea,
 )
+
+from desktop.charts_canvas import ScrollableFigureCanvas
 
 
 class SingleDriverPage(QWidget):
@@ -20,6 +23,15 @@ class SingleDriverPage(QWidget):
         self.max_speed_label = QLabel("-")
 
         self.chart_container = QVBoxLayout()
+
+        self.chart_widget = QWidget()
+        self.chart_container = QVBoxLayout(self.chart_widget)
+
+        self.chart_scroll_area = QScrollArea()
+        self.chart_scroll_area.setWidget(self.chart_widget)
+        self.chart_scroll_area.setWidgetResizable(True)
+        self.chart_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.chart_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
         self.build_ui()
 
@@ -49,7 +61,7 @@ class SingleDriverPage(QWidget):
 
         main_layout.addWidget(driver_group)
         main_layout.addWidget(metrics_group)
-        main_layout.addLayout(self.chart_container, stretch=1)
+        main_layout.addWidget(self.chart_container, stretch=1)
 
     def set_drivers(self, drivers: list[str]):
         self.driver_combo.clear()
@@ -70,15 +82,16 @@ class SingleDriverPage(QWidget):
 
         self.clear_chart()
 
-        canvas = FigureCanvasQTAgg(result["figure"])
-        canvas.setMinimumHeight(600)
-        canvas.setMinimumWidth(800)
-        canvas.setSizePolicy(
-            QSizePolicy.Expanding,
-            QSizePolicy.Expanding,
+        canvas = ScrollableFigureCanvas(
+            figure = result["figure"],
+            scroll_area = self.chart_scroll_area
         )
+        canvas.setMinimumHeight(1200)
+        canvas.setMinimumWidth(800)
 
         self.chart_container.addWidget(canvas)
+        self.chart_container.setContentsMargins(8, 8, 8, 8)
+
         canvas.draw()
 
     def clear_chart(self):

@@ -1,4 +1,5 @@
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+from desktop.charts_canvas import ScrollableFigureCanvas
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QComboBox,
     QFormLayout,
@@ -6,7 +7,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QSizePolicy,
     QVBoxLayout,
-    QWidget,
+    QWidget, QScrollArea,
 )
 
 
@@ -22,7 +23,14 @@ class ComparisonPage(QWidget):
         self.lap_time2_label = QLabel("-")
         self.max_speed2_label = QLabel("-")
 
-        self.chart_container = QVBoxLayout()
+        self.chart_widget = QWidget()
+        self.chart_container = QVBoxLayout(self.chart_widget)
+
+        self.chart_scroll_area = QScrollArea()
+        self.chart_scroll_area.setWidget(self.chart_widget)
+        self.chart_scroll_area.setWidgetResizable(True)
+        self.chart_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.chart_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
         self.build_ui()
 
@@ -67,7 +75,7 @@ class ComparisonPage(QWidget):
 
         main_layout.addWidget(drivers_group)
         main_layout.addWidget(metrics_group)
-        main_layout.addLayout(self.chart_container, stretch=1)
+        main_layout.addWidget(self.chart_container, stretch=1)
 
     def set_drivers(self, drivers: list[str]):
         self.driver1_combo.clear()
@@ -92,7 +100,6 @@ class ComparisonPage(QWidget):
         self.lap_time1_label.setText(
             result["lap_time1"]
         )
-
         self.max_speed1_label.setText(
             f"{result['max_speed1']:.2f} km/h"
         )
@@ -100,22 +107,22 @@ class ComparisonPage(QWidget):
         self.lap_time2_label.setText(
             result["lap_time2"]
         )
-
         self.max_speed2_label.setText(
             f"{result['max_speed2']:.2f} km/h"
         )
 
         self.clear_chart()
 
-        canvas = FigureCanvasQTAgg(result["figure"])
-        canvas.setMinimumHeight(600)
-        canvas.setMinimumWidth(800)
-        canvas.setSizePolicy(
-            QSizePolicy.Expanding,
-            QSizePolicy.Expanding,
+        canvas = ScrollableFigureCanvas(
+            figure = result["figure"],
+            scroll_area = self.chart_scroll_area
         )
+        canvas.setMinimumHeight(1200)
+        canvas.setMinimumWidth(900)
 
         self.chart_container.addWidget(canvas)
+        self.char_container.setContentsMargins(8, 8, 8, 8)
+
         canvas.draw()
 
     def clear_chart(self):
@@ -124,4 +131,5 @@ class ComparisonPage(QWidget):
             widget = item.widget()
 
             if widget is not None:
+                widget.setParent(None)
                 widget.deleteLater()
