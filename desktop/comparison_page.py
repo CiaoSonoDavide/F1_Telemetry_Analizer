@@ -75,7 +75,7 @@ class ComparisonPage(QWidget):
 
         main_layout.addWidget(drivers_group)
         main_layout.addWidget(metrics_group)
-        main_layout.addWidget(self.chart_container, stretch=1)
+        main_layout.addWidget(self.chart_scroll_area, stretch=1)
 
     def set_drivers(self, drivers: list[str]):
         self.driver1_combo.clear()
@@ -121,7 +121,6 @@ class ComparisonPage(QWidget):
         canvas.setMinimumWidth(900)
 
         self.chart_container.addWidget(canvas)
-        self.char_container.setContentsMargins(8, 8, 8, 8)
 
         canvas.draw()
 

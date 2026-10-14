@@ -5,7 +5,6 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QGroupBox,
     QLabel,
-    QSizePolicy,
     QVBoxLayout,
     QWidget, QScrollArea,
 )
@@ -21,8 +20,6 @@ class SingleDriverPage(QWidget):
 
         self.lap_time_label = QLabel("-")
         self.max_speed_label = QLabel("-")
-
-        self.chart_container = QVBoxLayout()
 
         self.chart_widget = QWidget()
         self.chart_container = QVBoxLayout(self.chart_widget)
@@ -61,7 +58,7 @@ class SingleDriverPage(QWidget):
 
         main_layout.addWidget(driver_group)
         main_layout.addWidget(metrics_group)
-        main_layout.addWidget(self.chart_container, stretch=1)
+        main_layout.addWidget(self.chart_scroll_area, stretch=1)
 
     def set_drivers(self, drivers: list[str]):
         self.driver_combo.clear()
@@ -90,7 +87,6 @@ class SingleDriverPage(QWidget):
         canvas.setMinimumWidth(800)
 
         self.chart_container.addWidget(canvas)
-        self.chart_container.setContentsMargins(8, 8, 8, 8)
 
         canvas.draw()
 
