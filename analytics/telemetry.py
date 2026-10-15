@@ -107,7 +107,7 @@ def interpolate_telemetry_by_distance(
         requested_channels = set(channels)
 
     common_min_distance = max(float(data1["Distance"].min()), float(data2["Distance"].min()))
-    common_max_distance = max(float(data1["Distance"].max()), float(data2["Distance"].max()))
+    common_max_distance = min(float(data1["Distance"].max()), float(data2["Distance"].max()))
 
     if common_min_distance >= common_max_distance:
         raise ValueError("Telemetry data does not have overlapping distance ranges for interpolation")
