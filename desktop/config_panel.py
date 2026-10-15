@@ -1,3 +1,4 @@
+""" Import necessary modules """
 from PySide6.QtCore import Signal, QSignalBlocker
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -17,11 +18,13 @@ from data.fastf1_data import (
 )
 
 
+""" Configuration Panel for Telemetry Analysis """
 class ConfigPanel(QWidget):
     configuration_changed = Signal(dict)
     load_requested = Signal(dict)
     mode_changed = Signal(str)
 
+    """ Function to initialize the configuration panel """
     def __init__(self):
         super().__init__()
 
@@ -64,6 +67,7 @@ class ConfigPanel(QWidget):
         self.connect_signals()
         self.populate_years()
 
+    """ Function to build the user interface """
     def build_ui(self):
         main_layout = QVBoxLayout(self)
 
@@ -102,6 +106,7 @@ class ConfigPanel(QWidget):
         main_layout.addWidget(self.load_button)
         main_layout.addStretch()
 
+    """ Function to connect signals to their respective slots """
     def connect_signals(self):
         self.mode_single.toggled.connect(
             self.on_mode_changed
@@ -127,6 +132,7 @@ class ConfigPanel(QWidget):
             self.request_load
         )
 
+    """ Function to populate the year combo box with available years """
     def populate_years(self):
         self.year_combo.clear()
 
@@ -138,6 +144,7 @@ class ConfigPanel(QWidget):
 
         self.populate_gp()
 
+    """ Function to populate the grand prix combo box based on the selected year """
     def populate_gp(self):
         with QSignalBlocker(self.gp_combo):
             self.gp_combo.clear()
@@ -153,6 +160,7 @@ class ConfigPanel(QWidget):
             self.gp_combo.addItems(gps)
         self.populate_sessions()
 
+    """ Function to populate the session combo box based on the selected year and grand prix """
     def populate_sessions(self):
         with QSignalBlocker(self.session_combo):
             self.session_combo.clear()
@@ -168,6 +176,7 @@ class ConfigPanel(QWidget):
 
             self.session_combo.addItems(sessions)
 
+    """ Function to handle the selection of a session """
     def on_session_selected(self, index: int):
         if index < 0:
             return
@@ -177,6 +186,7 @@ class ConfigPanel(QWidget):
             return
         self.configuration_changed.emit(config)
 
+    """ Function to handle the change in mode (single driver or driver comparison) """
     def on_mode_changed(self, checked: bool):
         if not checked:
             return
@@ -184,12 +194,14 @@ class ConfigPanel(QWidget):
         mode = self.current_mode()
         self.mode_changed.emit(mode)
 
+    """ Function to get the current mode (single driver or driver comparison) """
     def current_mode(self) -> str:
         if self.mode_single.isChecked():
             return "Single Driver"
 
         return "Driver Comparison"
 
+    """ Function to get the list of selected channels """
     def selected_channels(self):
         checkbox_mapping = [
             ("Speed", self.speed_checkbox),
@@ -208,6 +220,7 @@ class ConfigPanel(QWidget):
 
         return channels
 
+    """ Function to get the current configuration as a dictionary """
     def current_configuration(self) -> dict:
         year_text = self.year_combo.currentText()
 
@@ -220,6 +233,7 @@ class ConfigPanel(QWidget):
             "show_curves": self.curves_checkbox.isChecked(),
         }
 
+    """ Function to request loading of the selected configuration """
     def request_load(self):
         config = self.current_configuration()
 

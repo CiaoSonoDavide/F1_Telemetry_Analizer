@@ -1,8 +1,10 @@
+""" Import necessary modules """
 import fastf1.plotting as pl
 from matplotlib import pyplot as plt
 from typing import Optional, List, Tuple, Dict
 from core.lap_handler import get_best_lap
 
+""" Telemetry channels configuration and plotting functions for FastF1 telemetry data visualization """
 TELEMETRY_CHANNELS = {
     'Speed': {
         'label': 'Speed',
@@ -36,12 +38,20 @@ TELEMETRY_CHANNELS = {
     }
 }
 
+""" Function to get the driver style (color and linestyle) for plotting based on the driver abbreviation and session """
 def get_driver_style(driver_abbr: str, session):
-    return pl.get_driver_style(identifier=driver_abbr,
-                                style=['color', 'linestyle'],
-                                session=session)
+    return pl.get_driver_style(
+        identifier = driver_abbr,
+        style = ['color', 'linestyle'],
+        session = session)
 
-def add_curve_markers(ax, session, driver_name: str, show_label=True) -> None:
+""" Function to add curve markers to the plot """
+def add_curve_markers(
+        ax,
+        session,
+        driver_name: str,
+        show_label = True
+) -> None:
     fastest_lap = get_best_lap(session, driver_name)
     if fastest_lap is None:
         return
@@ -57,11 +67,11 @@ def add_curve_markers(ax, session, driver_name: str, show_label=True) -> None:
     ymin, ymax = ax.get_ylim()
 
     ax.vlines(
-        x=circuit_info.corners['Distance'],
-        ymin=ymin,
-        ymax=ymax,
-        color='gray',
-        linestyles='dotted'
+        x = circuit_info.corners['Distance'],
+        ymin = ymin,
+        ymax = ymax,
+        color = 'gray',
+        linestyles = 'dotted'
     )
 
     if show_label:
@@ -76,14 +86,17 @@ def add_curve_markers(ax, session, driver_name: str, show_label=True) -> None:
                 size='small'
             )
 
-def add_telemetry_plot(ax,
-                       telemetry,
-                       channel: str,
-                       driver_name: str,
-                       session,
-                       distance_col: str = 'Distance',
-                       show_curves: bool = True,
-                       show_label: bool = True) -> None:
+""" Function to add a telemetry plot for a specific channel """
+def add_telemetry_plot(
+        ax,
+        telemetry,
+        channel: str,
+        driver_name: str,
+        session,
+        distance_col: str = 'Distance',
+        show_curves: bool = True,
+        show_label: bool = True
+) -> None:
     if channel not in telemetry.columns:
         raise ValueError(f"Channel {channel} not found in telemetry data")
 
@@ -106,12 +119,15 @@ def add_telemetry_plot(ax,
     if show_curves:
         add_curve_markers(ax, session, driver_name, show_label)
 
-def create_telemetry_comparison(telemetry,
-                                driver_name: str,
-                                session,
-                                channels: Optional[List[str]] = None,
-                                figsize: Tuple[int, int] =(12,14),
-                                show_curves: bool = True):
+""" Function to create a telemetry comparison plot for a single driver """
+def create_telemetry_comparison(
+        telemetry,
+        driver_name: str,
+        session,
+        channels: Optional[List[str]] = None,
+        figsize: Tuple[int, int] =(12,14),
+        show_curves: bool = True
+):
     if channels is None:
         channels = list(TELEMETRY_CHANNELS.keys())
 
@@ -126,42 +142,59 @@ def create_telemetry_comparison(telemetry,
     height_ratios = [TELEMETRY_CHANNELS[ch]['height_ratio'] for ch in channels]
 
     fig, axs = plt.subplots(
-        n_channels, 1,
-        sharex=True,
-        figsize=figsize,
-        gridspec_kw={'height_ratios': height_ratios},
-        constrained_layout=True
+        n_channels,
+        1,
+        sharex = True,
+        figsize = figsize,
+        gridspec_kw = {'height_ratios': height_ratios},
+        constrained_layout = True
     )
 
     if n_channels == 1:
         axs = [axs]
 
-    #plt.subplots_adjust(hspace=0.05)
-
     for idx, channel in enumerate(channels):
         show_label = (idx == 0)
-        add_telemetry_plot(axs[idx], telemetry, channel, driver_name, session, show_curves=show_curves, show_label=show_label)
+        add_telemetry_plot(
+            axs[idx],
+            telemetry,
+            channel,
+            driver_name,
+            session,
+            show_curves = show_curves,
+            show_label = show_label)
 
     axs[0].legend(loc = 'upper right')
     axs[-1].set_xlabel('Distance (m)')
 
     return fig
 
-def create_telemetry(telemetry,
-                     driver_name: str,
-                     session,
-                     channels: Optional[List[str]] = None,
-                     show_curves: bool = True):
-    return create_telemetry_comparison(telemetry, driver_name, session, channels=channels, show_curves=show_curves)
+""" Function to create a telemetry plot for a single driver """
+def create_telemetry(
+        telemetry,
+        driver_name: str,
+        session,
+        channels: Optional[List[str]] = None,
+        show_curves: bool = True
+):
+    return create_telemetry_comparison(
+        telemetry,
+        driver_name,
+        session,
+        channels = channels,
+        show_curves = show_curves)
 
-def create_dual_driver_comparison(telemetry_driver1,
-                                  driver1_name: str,
-                                  telemetry_driver2,
-                                  driver2_name: str,
-                                  session,
-                                  channels: Optional[List[str]] = None,
-                                  figsize: Tuple[int, int] =(14,14),
-                                  show_curves: bool = True):
+""" Function to create a dual driver comparison plot for telemetry data """
+def create_dual_driver_comparison(
+        telemetry_driver1,
+        driver1_name: str,
+        telemetry_driver2,
+        driver2_name: str,
+        session,
+        channels: Optional[List[str]] = None,
+        figsize: Tuple[int, int] =(14,14),
+        show_curves: bool = True
+):
     if channels is None:
         channels = list(TELEMETRY_CHANNELS.keys())
 
@@ -191,22 +224,35 @@ def create_dual_driver_comparison(telemetry_driver1,
     height_ratios = [TELEMETRY_CHANNELS[ch]['height_ratio'] for ch in channels]
 
     fig, axs = plt.subplots(
-        n_channels, 1,
-        sharex=True,
-        figsize=figsize,
-        gridspec_kw={'height_ratios': height_ratios},
-        constrained_layout=True
+        n_channels,
+        1,
+        sharex = True,
+        figsize = figsize,
+        gridspec_kw = {'height_ratios': height_ratios},
+        constrained_layout = True
     )
 
     if n_channels == 1:
         axs = [axs]
 
-    #plt.subplots_adjust(hspace=0.15)
-
     for idx, channel in enumerate(channels):
         show_label = (idx == 0)
-        add_telemetry_plot(axs[idx], telemetry_driver1, channel, driver1_name, session, show_curves=show_curves, show_label=show_label)
-        add_telemetry_plot(axs[idx], telemetry_driver2, channel, driver2_name, session, show_curves=False, show_label=False)
+        add_telemetry_plot(
+            axs[idx],
+            telemetry_driver1,
+            channel,
+            driver1_name,
+            session,
+            show_curves = show_curves,
+            show_label = show_label)
+        add_telemetry_plot(
+            axs[idx],
+            telemetry_driver2,
+            channel,
+            driver2_name,
+            session,
+            show_curves = False,
+            show_label = False)
 
     axs[0].legend(loc = 'upper right')
     axs[-1].set_xlabel('Distance (m)')

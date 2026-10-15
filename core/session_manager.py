@@ -1,17 +1,21 @@
+""" Import necessary modules """
 from pathlib import Path
 import fastf1
 
+""" Define default cache directory """
 DEFAULT_CACHE_DIR = (Path(__file__).resolve().parent.parent / ".fastf1-cache")
 
+""" Function to set up cache directory for FastF1 """
 def setup_cache(cache_dir = DEFAULT_CACHE_DIR) -> None:
     if cache_dir is None:
         cache_dir = DEFAULT_CACHE_DIR
 
     cache_path = Path(cache_dir).resolve()
-    cache_path.mkdir(parents=True, exist_ok=True)
+    cache_path.mkdir(parents = True, exist_ok = True)
 
     fastf1.Cache.enable_cache(str(cache_path))
 
+""" Function to load a specific GP session """
 def load_gp_session(year: int, gp_name: str, session_type: str):
     if not year:
         raise ValueError("Year not valid")

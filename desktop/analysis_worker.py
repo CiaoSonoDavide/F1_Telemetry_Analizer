@@ -1,3 +1,4 @@
+""" Import necessary modules """
 from PySide6.QtCore import QObject, Signal, Slot
 from core.lap_handler import (
     get_best_lap,
@@ -11,19 +12,21 @@ from visualization.charts import (
 )
 from analytics.telemetry import (interpolate_telemetry_by_distance)
 import pandas as pd
-
 import traceback
 
+""" AnalysisWorker class handles the analysis operations in a separate thread """
 class AnalysisWorker(QObject):
     finished = Signal(object)
     error = Signal(str)
 
+    """ Function to initialize the AnalysisWorker with the specified operation and configuration """
     def __init__(self, operation: str, config: dict):
         super().__init__()
 
         self.operation = operation
         self.config = config
 
+    """ Function to run the analysis operation based on the specified operation type """
     @Slot()
     def run(self):
         try:
@@ -45,27 +48,29 @@ class AnalysisWorker(QObject):
 
         except Exception as exc:
             error_details = traceback.format_exc()
-            print(error_details, flush=True)
-            self.error.emit(f"{type(exc).__name__}: {exc}\n\n""Dettagli completi nella console di PyCharm.")
+            print(error_details, flush = True)
+            self.error.emit(f"{type(exc).__name__}: {exc}\n\n""Complete details in the console output.")
 
+    """ Function to load drivers for the specified session based on the configuration """
     def load_drivers(self):
         year = self.config.get("year")
         gp = self.config.get("gp")
         session_type = self.config.get("session_type")
 
         if not year or not gp or not session_type:
-            raise ValueError("Configurazione sessione incompleta.")
+            raise ValueError("Incomplete session configuration\nYear, GP, and session type are required")
 
         drivers = get_driver_by_session(year, gp, session_type)
 
         if not drivers:
-            raise ValueError("FastF1 non ha restituito piloti per la sessione " f"{year} - {gp} - {session_type}.")
+            raise ValueError("FastF1 doesn't return drivers for the session " f"{year} - {gp} - {session_type}.")
 
         return {
             "type": "drivers",
             "drivers": drivers,
         }
 
+    """ Function to run a single driver analysis based on the specified configuration """
     def run_single_analysis(self):
         session = load_gp_session(
             self.config["year"],
@@ -82,22 +87,22 @@ class AnalysisWorker(QObject):
 
         if best_lap is None:
             raise ValueError(
-                f"Il pilota {driver} non ha giri validi"
+                f"The driver {driver} has no valid laps"
             )
 
         telemetry = get_telemetry_data(best_lap)
 
         if telemetry is None or telemetry.empty:
             raise ValueError(
-                f"Nessuna telemetria disponibile per {driver}"
+                f"No telemetry data available for {driver}"
             )
 
         figure = create_telemetry(
-            telemetry=telemetry,
-            driver_name=driver,
-            session=session,
-            channels=self.config["channels"],
-            show_curves=self.config["show_curves"],
+            telemetry = telemetry,
+            driver_name = driver,
+            session = session,
+            channels = self.config["channels"],
+            show_curves = self.config["show_curves"],
         )
 
         return {
@@ -107,6 +112,7 @@ class AnalysisWorker(QObject):
             "max_speed": float(telemetry["Speed"].max()),
         }
 
+    """ Function to run a comparison analysis between two drivers based on the specified configuration """
     def run_comparison_analysis(self):
         session = load_gp_session(
             self.config["year"],
@@ -117,24 +123,17 @@ class AnalysisWorker(QObject):
         driver1 = self.config["driver1"]
         driver2 = self.config["driver2"]
 
-        best_lap1 = get_best_lap(
-            session,
-            driver1,
-        )
-
-        best_lap2 = get_best_lap(
-            session,
-            driver2,
-        )
+        best_lap1 = get_best_lap(session, driver1)
+        best_lap2 = get_best_lap(session, driver2)
 
         if best_lap1 is None:
             raise ValueError(
-                f"Il pilota {driver1} non ha giri validi"
+                f"The driver {driver1} has no valid laps"
             )
 
         if best_lap2 is None:
             raise ValueError(
-                f"Il pilota {driver2} non ha giri validi"
+                f"The driver {driver2} has no valid laps"
             )
 
         original_telemetry1 = get_telemetry_data(best_lap1)
@@ -146,18 +145,18 @@ class AnalysisWorker(QObject):
                 telemetry1 = original_telemetry1,
                 telemetry2 = original_telemetry2,
                 channels = channels,
-                step=1.0
+                step = 1.0
             )
         )
 
         figure = create_dual_driver_comparison(
-            telemetry_driver1=telemetry1,
-            driver1_name=driver1,
-            telemetry_driver2=telemetry2,
-            driver2_name=driver2,
-            session=session,
-            channels=self.config["channels"],
-            show_curves=self.config["show_curves"],
+            telemetry_driver1 = telemetry1,
+            driver1_name = driver1,
+            telemetry_driver2 = telemetry2,
+            driver2_name = driver2,
+            session = session,
+            channels = self.config["channels"],
+            show_curves = self.config["show_curves"],
         )
 
         return {
@@ -171,6 +170,7 @@ class AnalysisWorker(QObject):
             "max_speed2": float(telemetry2["Speed"].max()),
         }
 
+    """ Static method to format the lap time into a string representation """
     @staticmethod
     def format_lap_time(lap) -> str:
         lap_time = lap["LapTime"]

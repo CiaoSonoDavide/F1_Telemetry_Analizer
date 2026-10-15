@@ -1,3 +1,4 @@
+""" Import necessary modules """
 import sys
 
 import fastf1.plotting as plotting
@@ -6,7 +7,7 @@ from PySide6.QtWidgets import QApplication
 from core.session_manager import setup_cache
 from desktop.main_window import MainWindow
 
-
+""" Main function to run the application """
 def main():
     plotting.setup_mpl(
         mpl_timedelta_support=True,
@@ -23,6 +24,6 @@ def main():
 
     sys.exit(app.exec())
 
-
+""" Entry point of the application """
 if __name__ == "__main__":
     main()

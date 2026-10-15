@@ -1,3 +1,4 @@
+""" Import necessary modules """
 from PySide6.QtCore import QThread, Slot
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -17,13 +18,13 @@ from desktop.config_panel import ConfigPanel
 from desktop.single_driver_page import SingleDriverPage
 
 
+""" Class representing the main window of the application """
 class MainWindow(QMainWindow):
+    """ Function to initialize the main window """
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle(
-            "F1 Telemetry Analyzer"
-        )
+        self.setWindowTitle("F1 Telemetry Analyzer")
 
         self.resize(1500, 950)
 
@@ -49,6 +50,7 @@ class MainWindow(QMainWindow):
         self.build_ui()
         self.connect_signals()
 
+    """ Function to build the user interface """
     def build_ui(self):
         central_widget = QWidget()
         main_layout = QVBoxLayout(central_widget)
@@ -57,26 +59,25 @@ class MainWindow(QMainWindow):
 
         content_layout.addWidget(
             self.config_panel,
-            stretch=0,
+            stretch = 0
         )
 
         content_layout.addWidget(
             self.pages,
-            stretch=1,
+            stretch = 1
         )
 
         main_layout.addLayout(
             content_layout,
-            stretch=1,
+            stretch = 1
         )
 
         self.setCentralWidget(central_widget)
 
         self.progress_bar.setVisible(False)
-        self.status_label.setText(
-            "Seleziona una sessione"
-        )
+        self.status_label.setText("Select a session")
 
+    """ Function to connect signals and slots """
     def connect_signals(self):
         self.config_panel.mode_changed.connect(
             self.on_mode_changed
@@ -90,6 +91,7 @@ class MainWindow(QMainWindow):
             self.start_analysis
         )
 
+    """ Function to handle mode change events """
     @Slot(str)
     def on_mode_changed(self, mode: str):
         if mode == "Single Driver":
@@ -101,6 +103,7 @@ class MainWindow(QMainWindow):
                 self.comparison_page
             )
 
+    """ Function to load drivers based on the provided configuration """
     @Slot(dict)
     def load_drivers(self, config: dict):
         if self.worker_thread is not None:
@@ -118,21 +121,22 @@ class MainWindow(QMainWindow):
         if config_key == self.last_driver_config:
             return
 
-        self.status_label.setText("Download/caricamento dati FastF1...")
+        self.status_label.setText("Download/loading FastF1 data...")
         self.last_driver_config = config_key
 
         self.start_worker(
-            operation="drivers",
-            config=config,
+            operation = "drivers",
+            config = config,
         )
 
+    """ Function to start the analysis based on the provided configuration """
     @Slot(dict)
     def start_analysis(self, config: dict):
         if self.worker_thread is not None:
             QMessageBox.warning(
                 self,
-                "Operazione in corso",
-                "Attendi il completamento del caricamento attuale.",
+                "Loading in progress",
+                "Wait for the current operation to finish before starting a new one"
             )
             return
 
@@ -142,8 +146,8 @@ class MainWindow(QMainWindow):
             if not driver:
                 QMessageBox.warning(
                     self,
-                    "Pilota mancante",
-                    "Seleziona un pilota.",
+                    "Missing driver",
+                    "Select a driver"
                 )
                 return
 
@@ -158,16 +162,16 @@ class MainWindow(QMainWindow):
             if not driver1 or not driver2:
                 QMessageBox.warning(
                     self,
-                    "Piloti mancanti",
-                    "Seleziona due piloti.",
+                    "Missing drivers",
+                    "Select two drivers for comparison"
                 )
                 return
 
             if driver1 == driver2:
                 QMessageBox.warning(
                     self,
-                    "Piloti uguali",
-                    "Seleziona due piloti diversi.",
+                    "Identical drivers",
+                    "Select two different drivers"
                 )
                 return
 
@@ -175,22 +179,21 @@ class MainWindow(QMainWindow):
             config["driver2"] = driver2
             operation = "comparison"
 
-        self.status_label.setText(
-            "Caricamento sessione e generazione grafico..."
-        )
+        self.status_label.setText("Loading session and generating chart...")
 
         self.start_worker(
-            operation=operation,
-            config=config,
+            operation = operation,
+            config = config
         )
 
+    """ Function to start a worker thread for the specified operation and configuration """
     def start_worker(self, operation: str, config: dict):
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)
-        self.status_label.setText("Caricamento in corso...")
+        self.status_label.setText("Loading in progress...")
 
         thread = QThread(self)
-        worker = AnalysisWorker(operation=operation, config=config)
+        worker = AnalysisWorker(operation = operation, config = config)
 
         self.worker_thread = thread
         self.worker = worker
@@ -215,6 +218,7 @@ class MainWindow(QMainWindow):
 
         thread.start()
 
+    """ Function to handle the completion of the worker thread and update the UI accordingly """
     @Slot(object)
     def on_worker_finished(self, result: dict):
         self.progress_bar.setRange(0, 100)
@@ -231,44 +235,34 @@ class MainWindow(QMainWindow):
 
             if drivers:
                 self.status_label.setText(
-                    f"{len(drivers)} piloti caricati"
+                    f"{len(drivers)} drivers found for the selected session"
                 )
             else:
                 self.status_label.setText(
-                    "Nessun pilota trovato"
+                    "No drivers found for the selected session"
                 )
 
         elif result_type == "single":
-            self.single_page.display_result(
-                result
-            )
-
-            self.status_label.setText(
-                "Analisi completata"
-            )
+            self.single_page.display_result(result)
+            self.status_label.setText("Analysis completed")
 
         elif result_type == "comparison":
-            self.comparison_page.display_result(
-                result
-            )
+            self.comparison_page.display_result(result)
+            self.status_label.setText("Comparison completed")
 
-            self.status_label.setText(
-                "Confronto completato"
-            )
-
+    """ Function to handle errors that occur during the worker thread execution and display an error message """
     @Slot(str)
     def on_worker_error(self, message: str):
         self.last_driver_config = None
-        self.status_label.setText(
-            "Errore durante l'operazione"
-        )
+        self.status_label.setText("Error during the operation")
 
         QMessageBox.critical(
             self,
-            "Errore",
+            "Error",
             message
         )
 
+    """ Function to handle the completion of the worker thread and reset the worker and thread references """
     @Slot()
     def on_worker_thread_finished(self):
         self.worker = None

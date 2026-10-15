@@ -1,3 +1,4 @@
+""" Function to get best lap for a given driver in a specific session"""
 def get_best_lap(session, driver_abbr: str):
     laps = session.laps.pick_driver(driver_abbr)
 
@@ -6,6 +7,7 @@ def get_best_lap(session, driver_abbr: str):
 
     return laps.pick_driver(driver_abbr).pick_fastest()
 
+""" Function to get telemetry data for a given lap"""
 def get_telemetry_data(lap):
     if lap is None:
         return None

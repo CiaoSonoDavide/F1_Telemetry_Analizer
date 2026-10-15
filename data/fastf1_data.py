@@ -1,9 +1,11 @@
+""" Import necessary modules"""
 import fastf1
 import pandas as pd
 from functools import lru_cache
 from typing import List
 from datetime import datetime
 
+""" Define session mapping for different session types """
 SESSION_MAPPING = {
     'Practice 1': 'FP1',
     'Practice 2': 'FP2',
@@ -15,9 +17,10 @@ SESSION_MAPPING = {
     'Race': 'R'
 }
 
+""" Define the columns for the session data """
 SESSION_COLUMNS = ['Session1', 'Session2', 'Session3', 'Session4', 'Session5']
 
-
+""" Function to get available years with FastF1 data """
 @lru_cache(maxsize=128)
 def get_available_years() -> List[int]:
     try:
@@ -31,10 +34,12 @@ def get_available_years() -> List[int]:
                     years.add(year)
             except:
                 pass
-        return sorted(list(years), reverse=True)
+        return sorted(list(years), reverse = True)
     except:
-        return list(range(2018, current_year+1))
+        return list(range(2018, current_year + 1))
 
+
+""" Function to get Grand Prix names for a specific year """
 @lru_cache(maxsize=128)
 def get_gp_by_year(year: int) -> List[str]:
     try:
@@ -44,6 +49,8 @@ def get_gp_by_year(year: int) -> List[str]:
         print(f"Error loading GPs for {year}: {e}")
         return []
 
+
+""" Function to get session types for a specific Grand Prix in a given year """
 @lru_cache(maxsize=128)
 def get_session_by_gp(year: int, gp_name: str) -> List[str]:
     try:
@@ -63,6 +70,8 @@ def get_session_by_gp(year: int, gp_name: str) -> List[str]:
         print(f"Error loading sessions for {year} {gp_name}: {e}")
         return ['FP1', 'FP2', 'FP3', 'SQ', 'SS', 'S', 'Q', 'R']
 
+
+""" Function to get drivers for a specific session in a given year and Grand Prix """
 @lru_cache(maxsize=128)
 def get_driver_by_session(year: int, gp_name: str, session_type: str) -> List[str]:
     try:
@@ -71,22 +80,24 @@ def get_driver_by_session(year: int, gp_name: str, session_type: str) -> List[st
         session = load_gp_session(year,gp_name,session_type)
 
         if session is None:
-            raise ValueError("Sessione FastF1 vuota.")
+            raise ValueError("Empty session data")
 
         if session.laps is None or session.laps.empty:
-            raise ValueError("La sessione non contiene giri.")
+            raise ValueError("Session laps data is empty")
 
         if "Driver" not in session.laps.columns:
-            raise ValueError("Colonna Driver non presente.")
+            raise ValueError("Driver column not found")
 
         drivers = (session.laps["Driver"].dropna().astype(str).unique().tolist())
 
         return sorted(drivers)
 
     except Exception as exc:
-        print(f"Errore caricando i piloti per " f"{year} / {gp_name} / {session_type}:", flush=True)
-        raise RuntimeError("Impossibile caricare i piloti della sessione.") from exc
+        print(f"Error loading drivers for " f"{year} / {gp_name} / {session_type}:", flush = True)
+        raise RuntimeError("Unable to load drivers for the session.") from exc
 
+
+""" Function to clear the cache of the lru_cache decorated functions """
 def clear_cache():
     get_available_years.cache_clear()
     get_gp_by_year.cache_clear()
